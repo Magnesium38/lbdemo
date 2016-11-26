@@ -1,0 +1,31 @@
+{
+    "address": {
+        "app": {
+            "hostname": "localhost",
+            "port": 8181
+        },
+        "reader": {
+            "hostname": "localhost",
+            "port": 8282
+        },
+        "writer": {
+            "hostname": "localhost",
+            "port": 8383
+        }
+    },
+    "irc": {
+        "messageLimit": 20,
+        "readFrequency": 50,
+        "nickname": "twitch_username",
+        "password": "oauth:twitch_oauth_token",
+        "connectionInfo": "irc.chat.twitch.tv:6667"
+    },
+    "master": {
+        "nodeRegistryPath": "nodes.txt",
+        "nodeCheckFrequency": 60
+    },
+    "node": {
+        "hostname": "localhost",
+        "port": 0
+    }
+}

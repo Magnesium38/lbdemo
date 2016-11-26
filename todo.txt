@@ -1,0 +1,27 @@
+Search for `TO DO:`s within the project and complete them.
+Add clean logging.
+Add log path to config.
+Revisit statuses on nodes.
+Revisit status factories on masters.
+    The other part of this is verify that we need multiple masters.
+    One actually might be fine, which is why it was moved to common.
+    go build github.com/magnesium38/lbdemo/common/master -o output.exe
+AKA actually do statuses at some point.
+
+Check what RPC names to send stuff to.
+    Work
+    Status
+
+Consider joining app, reader and writer node into one process and add a flag
+  for which one will be ran. This is assuming master is common.
+
+The load balancers need to be split up.
+    The reader load balancer needs to know what readers are reading what
+      channels so that they can send part commands appropriately.
+    Writer load balancer needs to keep track on how many messages have been
+      sent by the writers to determine if it needs to spin up another one.
+    App server is fine I think.
+
+Rather than one node then, what about node/master in the same process.
+
+Clean up error messages. A lot of them too stack trace-y, rather than helpful.
