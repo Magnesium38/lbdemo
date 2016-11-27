@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"net"
 	"net/rpc"
 	"strings"
@@ -106,8 +105,6 @@ func (worker *Reader) Work() error {
 	toWrite <- "PASS " + worker.config.Irc.Password
 	toWrite <- "NICK " + worker.config.Irc.Nickname
 
-	fmt.Println("Begin maintaining IRC connection.")
-
 	// Begin maintaining IRC connection.
 	for worker.doWork {
 		line, err := reader.ReadString('\n')
@@ -117,9 +114,7 @@ func (worker *Reader) Work() error {
 			continue
 		}
 
-		fmt.Println(string(line))
-
-		go worker.process(string(line), toWrite)
+		go worker.process(line, toWrite)
 	}
 
 	return errors.New("The worker was instructed to stop.")

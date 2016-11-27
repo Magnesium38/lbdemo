@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/rpc"
 	"time"
@@ -52,7 +53,7 @@ type Writer struct {
 
 // Halt starts the shutdown of the worker.
 func (worker *Writer) halt() {
-	worker.toWrite <- writePayload{"QUIT Shutting Down\r\n", make(chan error)}
+	worker.toWrite <- writePayload{"QUIT Shutting Down", make(chan error)}
 	worker.doWork = false
 }
 
@@ -70,20 +71,18 @@ func (worker *Writer) Work() error {
 	go worker.startReader(ircConn)
 	writer := bufio.NewWriter(ircConn)
 
-	// Write the login information first.
-	writer.WriteString("PASS " + worker.config.Irc.Password + "\r\n")
-	writer.WriteString("NICK " + worker.config.Irc.Nickname + "\r\n")
-	writer.Flush()
-
 	for worker.doWork {
 		payload := <-worker.toWrite
 
 		if payload.msg == "" {
-			payload.doneChan <- nil
+			select {
+			case payload.doneChan <- nil:
+			default:
+			}
 			continue
 		}
 
-		_, err := writer.WriteString(payload.msg)
+		_, err := writer.WriteString(payload.msg + "\r\n")
 
 		// TO DO: Should I also flush here?
 		writer.Flush()
@@ -92,7 +91,6 @@ func (worker *Writer) Work() error {
 		case payload.doneChan <- err:
 		default:
 		}
-
 	}
 
 	return errors.New("The worker was instructed to stop.")
@@ -106,16 +104,21 @@ func (worker *Writer) startReader(conn net.Conn) {
 	worker.toWrite <- writePayload{"PASS " + worker.config.Irc.Password, make(chan error)}
 	worker.toWrite <- writePayload{"NICK " + worker.config.Irc.Nickname, make(chan error)}
 
-	fmt.Println("reading")
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
+			if err == io.EOF {
+				// The connection has died. Attempt to recover or die.
+				// TO DO:
+			}
+
 			// Most likely just not enough to read. Sleep it off.
+			fmt.Println(err)
 			time.Sleep(sleepDuration)
 			continue
 		}
 
-		fmt.Println(string(line))
+		fmt.Println("Got a line:", line)
 
 		// Send lines off to be processed.
 		go worker.process(string(line))

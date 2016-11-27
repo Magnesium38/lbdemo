@@ -25,3 +25,11 @@ The load balancers need to be split up.
 Rather than one node then, what about node/master in the same process.
 
 Clean up error messages. A lot of them too stack trace-y, rather than helpful.
+
+
+Major to do list.
+    Check Errors.
+        Reader's reader.Readstring should match writers.
+    Setup logging.
+    Do statuses.
+    A way for master to start and stop nodes.
