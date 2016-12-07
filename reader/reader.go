@@ -14,20 +14,9 @@ import (
 	"github.com/magnesium38/lbdemo/common"
 )
 
-// Worker is a common interface to put multiple workers into the same process.
-type Worker interface {
-	// Extend the worker as defined in balancer.Worker
-	balancer.Worker
-
-	// Work does the additional side tasks that the worker requires.
-	Work() error
-
-	// Shutdown attempts to stop the worker as gracefully as possible.
-	Shutdown()
-}
-
 // NewReader creates a new reader worker.
-func NewReader(config *common.Config) (Worker, error) {
+func NewReader(config *common.Config) (*Reader, error) {
+	// Establish a connection to the App server's load balancer.
 	appServer, err := rpc.DialHTTP("tcp", config.Address.App.String())
 	if err != nil {
 		return nil, err
@@ -41,6 +30,7 @@ func NewReader(config *common.Config) (Worker, error) {
 		true,
 		appServer,
 	}
+
 	return &worker, nil
 }
 
@@ -56,12 +46,21 @@ type Reader struct {
 
 // Join accepts the name of a channel and attempts to join it.
 func (worker *Reader) join(channel string) (string, error) {
+	// Add the channel to the channel slice to be kept track of.
+	worker.channels.Add(channel)
+
+	// Actually request to join the channel.
+	worker.toJoin <- channel
+
 	// TO DO: This assumes that joining a channel cannot fail, which is false.
 	//   If a channel doesn't exist, joining would fail. This should be fixed,
 	//   but it is a low priority fix for now. The biggest issue this has
 	//   currently is that a typo on the channel would give no feedback.
-	worker.channels.Add(channel)
-	worker.toJoin <- channel
+
+	// Real talk, you literally made a comment about how a typo could give
+	//   the illusion of success, and then forgot to put the # on the channels.
+	//   You almost spent time tracking the bug down that you labeled as a low
+	//   priority fix.
 	return "", nil
 }
 

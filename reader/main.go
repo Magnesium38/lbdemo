@@ -48,7 +48,7 @@ func StartMaster(config *common.Config) {
 		config.Address.Reader.Port,
 		config.Master.NodeRegistryPath,
 		time.Duration(config.Master.NodeCheckFrequency)*time.Second,
-		balancer.NewConnectionFactory(NewStatusFactory()))
+		NewConnectionFactory(NewStatusFactory()))
 
 	// Queue up all the concurrent bits as jobs.
 	jobs := common.NewWorkGroup()

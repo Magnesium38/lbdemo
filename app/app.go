@@ -10,20 +10,8 @@ import (
 	"github.com/magnesium38/lbdemo/common"
 )
 
-// Worker is a common interface to put multiple workers into the same process.
-type Worker interface {
-	// Extend the worker as defined in balancer.Worker
-	balancer.Worker
-
-	// Work does the additional side tasks that the worker requires.
-	Work() error
-
-	// Shutdown attempts to stop the worker as gracefully as possible.
-	Shutdown()
-}
-
 // NewApp creates a new app server worker.
-func NewApp(config *common.Config) (Worker, error) {
+func NewApp(config *common.Config) (*AppServer, error) {
 	worker := AppServer{
 		config,
 		true,
@@ -39,6 +27,7 @@ type AppServer struct {
 
 func (worker *AppServer) Work() error {
 	// This isn't real work. Parse to a db maybe?
+	// TO DO: literally anything else here.
 	for worker.doWork {
 		time.Sleep(time.Minute)
 	}
