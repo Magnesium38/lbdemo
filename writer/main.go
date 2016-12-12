@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -23,11 +24,15 @@ func main() {
 	// Parse the arguments into variables.
 	flag.Parse()
 
+	fmt.Println("Arguments parsed.")
+
 	// Load the config.
 	config, err := common.LoadConfig(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println("Config loaded.")
 
 	// Determine if this is the master or a node.
 	arg := strings.ToLower(flag.Arg(0))
@@ -42,6 +47,8 @@ func main() {
 }
 
 func StartMaster(config *common.Config) {
+	fmt.Println("Starting the load balancer.")
+
 	// Create the load balancer.
 	loadBalancer := balancer.NewLoadBalancer(
 		config.Address.Writer.Hostname,
@@ -55,15 +62,21 @@ func StartMaster(config *common.Config) {
 	jobs.Add(loadBalancer.MaintainNodes)
 	jobs.Add(loadBalancer.ListenAndServe)
 
+	fmt.Println("Running.")
+
 	// Start the jobs.
 	jobs.Start()
 
 	// Wait for an error.
 	fatalErr := jobs.Wait()
+
+	fmt.Println("Failing:", fatalErr)
 	log.Fatal(fatalErr)
 }
 
 func StartNode(config *common.Config) {
+	fmt.Println("Starting up a node.")
+
 	// Check the configuration.
 	host := config.Node.Hostname
 	port := config.Node.Port
@@ -99,6 +112,8 @@ func StartNode(config *common.Config) {
 	jobs.Add(worker.Work)
 	jobs.Add(node.ListenAndServe)
 
+	fmt.Println("Running.")
+
 	// Start working.
 	jobs.Start()
 
@@ -109,5 +124,7 @@ func StartNode(config *common.Config) {
 	fatalErr := jobs.Wait()
 	// Shutdown things as gracefully as possible.
 	worker.Shutdown()
+
+	fmt.Println("Failing:", fatalErr)
 	log.Fatal(fatalErr)
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/rpc"
@@ -59,14 +60,16 @@ func (worker *Writer) Work() error {
 	go func() {
 		doneChan := make(chan error)
 		worker.toWrite <- writePayload{"PASS " + worker.config.Irc.Password, doneChan}
-		worker.toWrite <- writePayload{"NICK " + worker.config.Irc.Nickname, doneChan}
 		<-doneChan
+		worker.toWrite <- writePayload{"NICK " + worker.config.Irc.Nickname, doneChan}
 		<-doneChan
 	}()
 
 	// Start the reader and get the writer.
 	go worker.startReader(ircConn)
 	writer := bufio.NewWriter(ircConn)
+
+	fmt.Println("Starting `work`.")
 
 	for worker.doWork {
 		payload := <-worker.toWrite
